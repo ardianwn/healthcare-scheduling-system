@@ -1,15 +1,14 @@
 # Healthcare Scheduling System
 
-Sistem penjadwalan konsultasi healthcare berbasis microservice dengan fitur email notification, queue processing, caching, dan unit testing.
-
+A comprehensive microservice-based healthcare scheduling system.
 ---
 
-## Cara Menjalankan Project
+## How to Run the Project
 
 ### Prerequisites
-- Docker dan Docker Compose
+- Docker and Docker Compose
 
-### Langkah-langkah
+### Steps
 
 1. **Clone repository**
 ```bash
@@ -17,29 +16,29 @@ git clone https://github.com/ardianwn/healthcare-scheduling-system
 cd healthcare-scheduling-system
 ```
 
-2. **Konfigurasi environment variables**
+2. **Configure environment variables**
 ```bash
 cp .env.example .env
-# Edit .env dengan credentials Anda
+# Edit .env with your actual credentials
 ```
 
-3. **Jalankan semua services**
+3. **Start all services**
 ```bash
 docker-compose up --build -d
 ```
 
-4. **Verifikasi services berjalan**
+4. **Verify services are running**
 ```bash
 docker-compose ps
 ```
 
-5. **Akses GraphQL Playground**
+5. **Access GraphQL Playground**
 - Auth Service: http://localhost:3001/graphql
 - Schedule Service: http://localhost:3002/graphql
 
 ---
 
-## Arsitektur Sistem
+## System Architecture
 
 ```
 ┌─────────────────┐      ┌──────────────────┐      ┌──────────────┐
@@ -60,12 +59,12 @@ docker-compose ps
 └─────────────────┘      └──────────────────┘
 ```
 
-**Penjelasan:**
-- **Auth Service**: Mengelola registrasi, login, dan validasi JWT token
-- **Schedule Service**: Mengelola data customers, doctors, dan schedules
-- **PostgreSQL**: Database terpisah untuk setiap service
-- **Redis**: Backend untuk Bull queue dan caching
-- **Komunikasi**: Schedule Service memvalidasi token dengan memanggil Auth Service
+**Explanation:**
+- **Auth Service**: Handles registration, login, and JWT token validation
+- **Schedule Service**: Manages customers, doctors, and schedules data
+- **PostgreSQL**: Separate database for each service
+- **Redis**: Backend for Bull queue and caching
+- **Communication**: Schedule Service validates tokens by calling Auth Service
 
 ---
 
@@ -73,55 +72,55 @@ docker-compose ps
 
 ### File: `.env`
 
-| Variable | Deskripsi | Contoh Value |
-|----------|-----------|--------------|
+| Variable | Description | Example Value |
+|----------|-------------|---------------|
 | **PostgreSQL - Auth Service** | | |
-| `POSTGRES_USER` | Username database auth | `postgres` |
-| `POSTGRES_PASSWORD` | Password database auth | `postgres123` |
-| `POSTGRES_DB` | Nama database auth | `auth_db` |
-| `AUTH_DATABASE_URL` | Connection string auth service | `postgresql://postgres:postgres123@postgres-auth:5432/auth_db?schema=public` |
+| `POSTGRES_USER` | Auth database username | `postgres` |
+| `POSTGRES_PASSWORD` | Auth database password | `postgres123` |
+| `POSTGRES_DB` | Auth database name | `auth_db` |
+| `AUTH_DATABASE_URL` | Auth service connection string | `postgresql://postgres:postgres123@postgres-auth:5432/auth_db?schema=public` |
 | **PostgreSQL - Schedule Service** | | |
-| `SCHEDULE_POSTGRES_USER` | Username database schedule | `postgres` |
-| `SCHEDULE_POSTGRES_PASSWORD` | Password database schedule | `postgres123` |
-| `SCHEDULE_POSTGRES_DB` | Nama database schedule | `schedule_db` |
-| `SCHEDULE_DATABASE_URL` | Connection string schedule service | `postgresql://postgres:postgres123@postgres-schedule:5433/schedule_db?schema=public` |
+| `SCHEDULE_POSTGRES_USER` | Schedule database username | `postgres` |
+| `SCHEDULE_POSTGRES_PASSWORD` | Schedule database password | `postgres123` |
+| `SCHEDULE_POSTGRES_DB` | Schedule database name | `schedule_db` |
+| `SCHEDULE_DATABASE_URL` | Schedule service connection string | `postgresql://postgres:postgres123@postgres-schedule:5433/schedule_db?schema=public` |
 | **JWT Configuration** | | |
-| `AUTH_JWT_SECRET` | Secret key untuk JWT | `your-secret-key-min-32-chars` |
-| `AUTH_JWT_EXPIRES_IN` | Durasi expiry token | `24h` |
+| `AUTH_JWT_SECRET` | JWT secret key | `your-secret-key-min-32-chars` |
+| `AUTH_JWT_EXPIRES_IN` | Token expiry duration | `24h` |
 | **Auth Service** | | |
-| `AUTH_SERVICE_URL` | URL auth service (internal Docker) | `http://auth-service:3001/graphql` |
+| `AUTH_SERVICE_URL` | Auth service URL (internal Docker) | `http://auth-service:3001/graphql` |
 | **Redis Configuration** | | |
 | `REDIS_HOST` | Redis host | `redis` |
 | `REDIS_PORT` | Redis port | `6379` |
 | **Email Configuration (Optional)** | | |
 | `SMTP_HOST` | SMTP server | `smtp.gmail.com` |
 | `SMTP_PORT` | SMTP port | `587` |
-| `SMTP_USER` | Email pengirim | `your-email@gmail.com` |
+| `SMTP_USER` | Sender email | `your-email@gmail.com` |
 | `SMTP_PASS` | Gmail App Password (16 char) | `abcd efgh ijkl mnop` |
-| `SMTP_FROM` | Email pengirim | `your-email@gmail.com` |
+| `SMTP_FROM` | Sender email | `your-email@gmail.com` |
 
-### Cara Generate JWT Secret
+### How to Generate JWT Secret
 ```bash
-# Menggunakan Node.js
+# Using Node.js
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
-# Menggunakan OpenSSL
+# Using OpenSSL
 openssl rand -hex 32
 ```
 
-### Cara Mendapatkan Gmail App Password
-1. Aktifkan 2-Factor Authentication di Gmail
-2. Buka: https://myaccount.google.com/apppasswords
-3. Generate password baru
-4. Copy 16-character password ke `SMTP_PASS`
+### How to Get Gmail App Password
+1. Enable 2-Factor Authentication on your Gmail account
+2. Go to: https://myaccount.google.com/apppasswords
+3. Generate a new password
+4. Copy the 16-character password to `SMTP_PASS`
 
 ---
 
-## Contoh GraphQL Queries/Mutations
+## GraphQL Queries/Mutations Examples
 
 ### Auth Service (Port 3001)
 
-#### 1. Register - Registrasi User Baru
+#### 1. Register - Create New User
 ```graphql
 mutation Register {
   register(input: {
@@ -154,7 +153,7 @@ mutation Register {
 }
 ```
 
-#### 2. Login - Mendapatkan JWT Token
+#### 2. Login - Get JWT Token
 ```graphql
 mutation Login {
   login(input: {
@@ -185,7 +184,7 @@ mutation Login {
 }
 ```
 
-#### 3. Validate Token - Validasi JWT Token
+#### 3. Validate Token - Validate JWT Token
 ```graphql
 query ValidateToken {
   validateToken(token: "YOUR_JWT_TOKEN_HERE") {
@@ -200,7 +199,7 @@ query ValidateToken {
 
 ### Schedule Service (Port 3002)
 
-**PENTING:** Semua endpoint Schedule Service memerlukan authentication. Tambahkan JWT token ke HTTP Headers:
+**IMPORTANT:** All Schedule Service endpoints require authentication. Add JWT token to HTTP Headers:
 
 ```json
 {
@@ -208,7 +207,7 @@ query ValidateToken {
 }
 ```
 
-#### 1. Customer - Buat Customer Baru
+#### 1. Customer - Create New Customer
 ```graphql
 mutation CreateCustomer {
   createCustomer(input: {
@@ -223,7 +222,7 @@ mutation CreateCustomer {
 }
 ```
 
-#### 2. Customer - Get Semua Customers (dengan pagination)
+#### 2. Customer - Get All Customers (with pagination)
 ```graphql
 query GetCustomers {
   customers(page: 1, limit: 10) {
@@ -277,7 +276,7 @@ mutation DeleteCustomer {
 }
 ```
 
-#### 6. Doctor - Buat Doctor Baru
+#### 6. Doctor - Create New Doctor
 ```graphql
 mutation CreateDoctor {
   createDoctor(input: {
@@ -290,7 +289,7 @@ mutation CreateDoctor {
 }
 ```
 
-#### 7. Doctor - Get Semua Doctors (dengan pagination)
+#### 7. Doctor - Get All Doctors (with pagination)
 ```graphql
 query GetDoctors {
   doctors(page: 1, limit: 10) {
@@ -339,7 +338,7 @@ mutation DeleteDoctor {
 }
 ```
 
-#### 11. Schedule - Buat Schedule Baru (dengan Email Notification)
+#### 11. Schedule - Create New Schedule (with Email Notification)
 ```graphql
 mutation CreateSchedule {
   createSchedule(input: {
@@ -364,12 +363,12 @@ mutation CreateSchedule {
 }
 ```
 
-**Note:** Mutation ini akan otomatis:
-- Queue email notification ke Bull/Redis
-- Send email ke customer (jika SMTP dikonfigurasi)
-- Cache invalidation untuk schedules list
+**Note:** This mutation will automatically:
+- Queue email notification to Bull/Redis
+- Send email to customer (if SMTP is configured)
+- Cache invalidation for schedules list
 
-#### 12. Schedule - Get Semua Schedules (dengan filter dan pagination)
+#### 12. Schedule - Get All Schedules (with filters and pagination)
 ```graphql
 query GetSchedules {
   schedules(
@@ -418,7 +417,7 @@ query GetSchedule {
 }
 ```
 
-#### 14. Schedule - Delete Schedule (dengan Cancellation Email)
+#### 14. Schedule - Delete Schedule (with Cancellation Email)
 ```graphql
 mutation DeleteSchedule {
   deleteSchedule(id: "schedule-uuid-here") {
@@ -429,38 +428,38 @@ mutation DeleteSchedule {
 }
 ```
 
-**Note:** Mutation ini akan otomatis:
+**Note:** This mutation will automatically:
 - Queue cancellation email notification
-- Send cancellation email ke customer (jika SMTP dikonfigurasi)
-- Cache invalidation untuk schedules list
+- Send cancellation email to customer (if SMTP is configured)
+- Cache invalidation for schedules list
 
 ---
 
-## Fitur Bonus
+## Bonus Features
 
 ### 1. Email Notifications
-- Otomatis send email saat schedule dibuat/dihapus
-- Menggunakan Nodemailer + Gmail SMTP
-- Email template profesional
+- Automatically send email when schedule is created/deleted
+- Using Nodemailer + Gmail SMTP
+- Professional email templates
 
 ### 2. Queue System
-- Bull Queue + Redis untuk async processing
-- Retry mechanism (3 attempts dengan exponential backoff)
-- Job persistence di Redis
+- Bull Queue + Redis for async processing
+- Retry mechanism (3 attempts with exponential backoff)
+- Job persistence in Redis
 
 ### 3. Caching
-- In-memory caching dengan @nestjs/cache-manager
-- Cache TTL 5 menit
-- Auto invalidation saat data berubah
+- In-memory caching with @nestjs/cache-manager
+- Cache TTL 5 minutes
+- Auto invalidation when data changes
 - Performance improvement ~95%
 
 ### 4. Unit Testing
-- 37 test cases (semua passing)
-- Coverage >50% semua services
+- 37 test cases (all passing)
+- Coverage >50% all services
 - Auth Service: 89.18% coverage
 - Schedule Service: 85-100% coverage per file
 
-**Cara run tests:**
+**How to run tests:**
 ```bash
 # Auth Service
 docker-compose exec auth-service npm run test:cov
