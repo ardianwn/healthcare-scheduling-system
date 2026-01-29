@@ -1,0 +1,107 @@
+services:
+  postgres-auth:
+    image: postgres:15-alpine
+    container_name: postgres-auth
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_AUTH_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    networks:
+      - healthcare-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-schedule:
+    image: postgres:15-alpine
+    container_name: postgres-schedule
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_SCHEDULE_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-schedule-data:/var/lib/postgresql/data
+    networks:
+      - healthcare-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - healthcare-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "${AUTH_PORT:-3001}:3001"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-auth:5432/${POSTGRES_AUTH_DB}
+      JWT_SECRET: ${AUTH_JWT_SECRET}
+      JWT_EXPIRATION: ${AUTH_JWT_EXPIRATION:-24h}
+      PORT: ${AUTH_PORT:-3001}
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+    networks:
+      - healthcare-network
+    restart: unless-stopped
+
+  schedule-service:
+    build:
+      context: ./schedule-service
+      dockerfile: Dockerfile
+    container_name: schedule-service
+    ports:
+      - "${SCHEDULE_PORT:-3002}:3002"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-schedule:5432/${POSTGRES_SCHEDULE_DB}
+      PORT: ${SCHEDULE_PORT:-3002}
+      AUTH_SERVICE_URL: http://auth-service:${AUTH_PORT:-3001}/graphql
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
+    depends_on:
+      postgres-schedule:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - healthcare-network
+    restart: unless-stopped
+
+volumes:
+  postgres-auth-data:
+  postgres-schedule-data:
+
+networks:
+  healthcare-network:
+    driver: bridge
